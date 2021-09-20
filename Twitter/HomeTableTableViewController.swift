@@ -13,9 +13,30 @@ class HomeTableTableViewController: UITableViewController {
     var tweerArray = [NSDictionary]()
     var numberOfTweets: Int!
     
-    func loadTweets() {
+    let myRefreshControl = UIRefreshControl()
+    
+    @objc func loadTweets() {
+        numberOfTweets = 20
         let myURL = "https://api.twitter.com/1.1/statuses/home_timeline.json"
-        let myParams = ["count": 10]
+        let myParams = ["count": numberOfTweets]
+        TwitterAPICaller.client?.getDictionariesRequest(url: myURL, parameters: myParams, success: {(tweets:[NSDictionary]) in
+            self.tweerArray.removeAll()
+            for tweet in tweets{
+                self.tweerArray.append(tweet)
+            }
+            self.tableView.reloadData()
+            self.myRefreshControl.endRefreshing()
+            
+        }, failure: { Error in
+            print("Cound not retreive tweets.")
+        })
+    }
+    
+    @objc func loadMoreTweets() {
+        let myURL = "https://api.twitter.com/1.1/statuses/home_timeline.json"
+        numberOfTweets = numberOfTweets + 20
+        let myParams = ["count": numberOfTweets]
+        
         TwitterAPICaller.client?.getDictionariesRequest(url: myURL, parameters: myParams, success: {(tweets:[NSDictionary]) in
             self.tweerArray.removeAll()
             for tweet in tweets{
@@ -55,7 +76,8 @@ class HomeTableTableViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         loadTweets()
-        print(tweerArray)
+        myRefreshControl.addTarget(self, action: #selector(loadTweets), for: .valueChanged)
+        tableView.refreshControl = myRefreshControl
     }
 
     // MARK: - Table view data source
@@ -68,6 +90,14 @@ class HomeTableTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
         return tweerArray.count
+    }
+    
+    
+    override func tableView(_ tableView: UITableView, willDisplay cell:UITableViewCell, forRowAt indexPath: IndexPath) {
+        // Return false if you do not want the specified item to be editable.
+        if indexPath.row + 1 == tweerArray.count {
+            loadMoreTweets()
+        }
     }
 
     /*
