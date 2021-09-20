@@ -9,34 +9,65 @@
 import UIKit
 
 class HomeTableTableViewController: UITableViewController {
-
+    
+    var tweerArray = [NSDictionary]()
+    var numberOfTweets: Int!
+    
+    func loadTweets() {
+        let myURL = "https://api.twitter.com/1.1/statuses/home_timeline.json"
+        let myParams = ["count": 10]
+        TwitterAPICaller.client?.getDictionariesRequest(url: myURL, parameters: myParams, success: {(tweets:[NSDictionary]) in
+            self.tweerArray.removeAll()
+            for tweet in tweets{
+                self.tweerArray.append(tweet)
+            }
+            self.tableView.reloadData()
+            
+        }, failure: { Error in
+            print("Cound not retreive tweets.")
+        })
+    }
+    
     @IBAction func onLogout(_ sender: Any) {
         TwitterAPICaller.client?.logout()
         self.dismiss(animated: true, completion: nil)
         UserDefaults.standard.set(false,forKey: "userLoggedIn")
     }
     
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "tweetCell", for: indexPath) as! TweetsCell
+        
+        let user = tweerArray[indexPath.row]["user"] as! NSDictionary
+        
+        cell.userNameLable.text = user["name"] as? String
+        cell.tweetContent.text = tweerArray[indexPath.row]["text"] as? String
+        
+        let imageUrl = URL(string: (user["profile_image_url_https"] as? String)!)
+        let data = try? Data(contentsOf: imageUrl!)
+        
+        if let imaageData = data {
+            cell.tweetImage.image = UIImage(data: imaageData)
+        }
+        
+        return cell
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem
+        loadTweets()
+        print(tweerArray)
     }
 
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Incomplete implementation, return the number of sections
-        return 0
+        return 1
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return 0
+        return tweerArray.count
     }
 
     /*
