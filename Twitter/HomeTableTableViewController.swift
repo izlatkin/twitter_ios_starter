@@ -70,6 +70,10 @@ class HomeTableTableViewController: UITableViewController {
             cell.tweetImage.image = UIImage(data: imaageData)
         }
         
+        cell.setFavorite(tweerArray[indexPath.row]["favorited"] as! Bool)
+        cell.tweetId = tweerArray[indexPath.row]["id"] as! Int
+        cell.setReTweeted(tweerArray[indexPath.row]["retweeted"] as! Bool)
+        
         return cell
     }
     
@@ -78,6 +82,13 @@ class HomeTableTableViewController: UITableViewController {
         loadTweets()
         myRefreshControl.addTarget(self, action: #selector(loadTweets), for: .valueChanged)
         tableView.refreshControl = myRefreshControl
+        self.tableView.rowHeight = UITableView.automaticDimension
+        self.tableView.estimatedRowHeight = 150
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        self.loadTweets()
     }
 
     // MARK: - Table view data source
@@ -100,6 +111,8 @@ class HomeTableTableViewController: UITableViewController {
         }
     }
 
+    
+    
     /*
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
