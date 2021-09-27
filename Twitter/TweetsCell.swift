@@ -63,7 +63,7 @@ class TweetsCell: UITableViewCell {
     }
     
     func setReTweeted(_ isReTweeted:Bool) {
-        if (reTweeted){
+        if (isReTweeted){
             reTweetButton.setImage(UIImage(named:"retweet-icon-green"), for: UIControl.State.normal)
             reTweetButton.isEnabled = false
         } else{
